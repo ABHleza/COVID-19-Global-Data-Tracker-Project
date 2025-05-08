@@ -1,0 +1,89 @@
+Data Loading & Exploration
+Python
+import pandas as pd
+
+# Load the dataset
+confirmed_cases = pd.read_csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+deaths = pd.read_csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+recovered_cases = pd.read_csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
+
+# Preview the data
+print(confirmed_cases.head())
+print(deaths.head())
+print(recovered_cases.head())
+Data Cleaning
+Python
+# Melt the dataframes to convert them into a long format
+confirmed_cases_melted = confirmed_cases.melt(id_vars=['Province/State', 'Country/Region', 'Lat', 'Long'], var_name='Date', value_name='Confirmed Cases')
+deaths_melted = deaths.melt(id_vars=['Province/State', 'Country/Region', 'Lat', 'Long'], var_name='Date', value_name='Deaths')
+recovered_cases_melted = recovered_cases.melt(id_vars=['Province/State', 'Country/Region', 'Lat', 'Long'], var_name='Date', value_name='Recovered Cases')
+
+# Merge the dataframes
+covid_data = pd.merge(confirmed_cases_melted, deaths_melted, on=['Province/State', 'Country/Region', 'Lat', 'Long', 'Date'])
+covid_data = pd.merge(covid_data, recovered_cases_melted, on=['Province/State', 'Country/Region', 'Lat', 'Long', 'Date'])
+
+# Convert the Date column to datetime
+covid_data['Date'] = pd.to_datetime(covid_data['Date'])
+Date, Location, Total Cases, New Cases, Total Deaths, New Deaths, Total Recovered Cases, New Recovered Cases
+Code
+
+**Exploratory Data Analysis (EDA)**
+
+```python
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Plot total cases over time for selected countries
+countries = ['US', 'India', 'Brazil']
+for country in countries:
+    country_data = covid_data[covid_data['Country/Region'] == country]
+    country_data = country_data.groupby('Date')['Confirmed Cases'].sum().reset_index()
+    plt.plot(country_data['Date'], country_data['Confirmed Cases'], label=country)
+
+plt.xlabel('Date')
+plt.ylabel('Total Cases')
+plt.title('Total Cases Over Time')
+plt.legend()
+plt.show()
+
+# Plot total deaths over time
+for country in countries:
+    country_data = covid_data[covid_data['Country/Region'] == country]
+    country_data = country_data.groupby('Date')['Deaths'].sum().reset_index()
+    plt.plot(country_data['Date'], country_data['Deaths'], label=country)
+
+plt.xlabel('Date')
+plt.ylabel('Total Deaths')
+plt.title('Total Deaths Over Time')
+plt.legend()
+plt.show()
+
+# Calculate the death rate
+covid_data['Death Rate'] = covid_data['Deaths'] / covid_data['Confirmed Cases']
+Visualizing Vaccination Progress
+Unfortunately, the Johns Hopkins University GitHub Repository does not provide vaccination data. We'll skip this section.
+Building a Choropleth Map
+Python
+import plotly.express as px
+
+# Prepare a dataframe with country and total cases for the latest date
+latest_date = covid_data['Date'].max()
+latest_data = covid_data[covid_data['Date'] == latest_date]
+latest_data = latest_data.groupby('Country/Region')['Confirmed Cases'].sum().reset_index()
+
+# Plot a choropleth map
+fig = px.choropleth(latest_data, locations='Country/Region', locationmode='country names', color='Confirmed Cases')
+fig.show()
+Insights and Reporting
+MarkDown
+## Key Insights
+
+1. The United States has the highest number of total cases.
+2. The death rate varies significantly across countries.
+3. The choropleth map shows that the pandemic has affected countries worldwide.
+
+## Recommendations
+
+1. Governments and health organizations should continue to monitor the pandemic and implement measures to control its spread.
+2. Vaccination efforts should be increased in countries with low vaccination rates.
+3. Further analysis is needed to understand the factors contributing to the differen
